@@ -17,7 +17,7 @@ export default function TapeVisualization({
   headPositions,
   numTapes,
   writtenCells,
-  blankSymbol = '_',
+  blankSymbol = 'B',
   currentState,
   status = 'running',
 }: TapeVisualizationProps) {
@@ -77,7 +77,7 @@ export default function TapeVisualization({
       case 'rejected': return 'var(--accent-rose)';
       case 'halted': return 'var(--accent-amber)';
       case 'missing_transition': return 'var(--accent-rose)';
-      default: return 'var(--accent-cyan-light, #0ea5e9)';
+      default: return '#10b981'; // Green for active running state
     }
   };
 
@@ -87,7 +87,7 @@ export default function TapeVisualization({
       case 'rejected': return 'rgba(186, 26, 26, 0.1)';
       case 'halted': return 'rgba(138, 81, 0, 0.1)';
       case 'missing_transition': return 'rgba(186, 26, 26, 0.1)';
-      default: return 'rgba(14, 165, 233, 0.1)';
+      default: return 'rgba(16, 185, 129, 0.15)'; // Green for active running state
     }
   };
 
@@ -97,7 +97,7 @@ export default function TapeVisualization({
       case 'rejected': return 'rgba(186, 26, 26, 0.3)';
       case 'halted': return 'rgba(138, 81, 0, 0.25)';
       case 'missing_transition': return 'rgba(186, 26, 26, 0.3)';
-      default: return 'rgba(14, 165, 233, 0.25)';
+      default: return 'rgba(16, 185, 129, 0.4)'; // Green for active running state
     }
   };
 
@@ -130,20 +130,7 @@ export default function TapeVisualization({
               <div className="tape-label-left">
                 <span className="tape-num">{tapeIdx + 1}</span>
                 <span>TAPE_{String(tapeIdx + 1).padStart(2, '0')} ({tapeName})</span>
-                {/* Current state badge next to each tape */}
-                {currentState && (
-                  <span
-                    className="tape-state-badge"
-                    style={{
-                      color: getStatusColor(),
-                      background: getStatusBg(),
-                      borderColor: getStatusBorder(),
-                      transform: stateAnimating ? 'scale(1.15)' : 'scale(1)',
-                    }}
-                  >
-                    {currentState}
-                  </span>
-                )}
+                {/* Removed state badge from next to tape label as per point 3 - move below tape head */}
               </div>
               <span className="tape-pos-badge">HEAD: {String(headPos).padStart(2, '0')}</span>
             </div>
@@ -171,7 +158,36 @@ export default function TapeVisualization({
                     )}
                     {symbol}
                     {isActive && (
-                      <span className="head-indicator">▲</span>
+                      <div className="head-indicator-wrapper" style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        zIndex: 10,
+                        marginTop: '-4px'
+                      }}>
+                        <span className="head-indicator" style={{
+                           color: getStatusColor(),
+                           textShadow: `0 0 6px ${getStatusBorder()}`
+                        }}>▲</span>
+                        <div style={{
+                          background: getStatusBg(),
+                          color: getStatusColor(),
+                          border: `1px solid ${getStatusBorder()}`,
+                          borderRadius: '6px',
+                          padding: '2px 8px',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          marginTop: '2px',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                          animation: status === 'running' ? 'pulse 2s infinite' : 'none'
+                        }}>
+                          {currentState}
+                        </div>
+                      </div>
                     )}
                   </div>
                 );
@@ -181,82 +197,7 @@ export default function TapeVisualization({
         );
       })}
 
-      {/* Current State Display — below all tapes */}
-      {currentState !== undefined && (
-        <div
-          className="current-state-display"
-          style={{
-            background: getContainerBg(),
-            border: `1.5px solid ${getStatusBorder()}`,
-            borderRadius: '12px',
-            padding: '12px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            marginTop: '4px',
-            boxShadow: getGlowShadow(),
-            transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
-          }}
-        >
-          <span style={{
-            fontSize: '12px',
-            fontWeight: 700,
-            color: 'var(--text-muted)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em',
-          }}>
-            Current State:
-          </span>
-
-          <span
-            style={{
-              fontSize: '20px',
-              fontWeight: 800,
-              fontFamily: 'var(--font-mono)',
-              color: getStatusColor(),
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              transform: stateAnimating ? 'scale(1.2)' : 'scale(1)',
-              display: 'inline-block',
-            }}
-          >
-            {currentState}
-          </span>
-
-          {/* Status badge */}
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: '3px 10px',
-              borderRadius: '9999px',
-              fontSize: '10px',
-              fontWeight: 700,
-              letterSpacing: '0.08em',
-              background: getStatusBg(),
-              color: getStatusColor(),
-              border: `1px solid ${getStatusBorder()}`,
-              animation: status === 'running' ? 'pulse 2s ease-in-out infinite' : undefined,
-              transition: 'all 0.3s ease',
-            }}
-          >
-            {/* Pulse dot for running */}
-            {status === 'running' && (
-              <span style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: 'var(--accent-cyan-light, #0ea5e9)',
-                animation: 'pulse 1.5s ease-in-out infinite',
-              }} />
-            )}
-            {status === 'accepted' && <span>✓</span>}
-            {(status === 'rejected' || status === 'missing_transition') && <span>✗</span>}
-            {getStatusLabel()}
-          </span>
-        </div>
-      )}
+      {/* REMOVED: large bottom state display (Feature 3: move below tape heads) */}
     </div>
   );
 }

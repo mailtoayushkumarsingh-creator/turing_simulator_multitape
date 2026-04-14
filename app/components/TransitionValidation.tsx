@@ -31,13 +31,13 @@ export default function TransitionValidation({
     if (missingRules.length === 0) return;
 
     // Ensure reject state exists
-    let newStates = [...config.states];
+    const newStates = [...config.states];
     const rejectState = config.rejectStates[0] || 'qReject';
     if (!newStates.includes(rejectState)) {
       newStates.push(rejectState);
     }
 
-    let newRejectStates = [...config.rejectStates];
+    const newRejectStates = [...config.rejectStates];
     if (!newRejectStates.includes(rejectState)) {
       newRejectStates.push(rejectState);
     }

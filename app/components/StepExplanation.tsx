@@ -62,15 +62,15 @@ function classifyOperation(snapshot: MachineSnapshot): { concept: string; icon: 
 
   // Detect marking operations (writing a different symbol to mark)
   const isMarking = hasWrite && t.writeSymbols.some((s, i) =>
-    s !== '*' && s !== t.readSymbols[i] && s !== '_'
+    s !== '*' && s !== t.readSymbols[i] && s !== 'B'
   );
 
   // Detect erasing (writing blank)
-  const isErasing = hasWrite && t.writeSymbols.some((s) => s === '_');
+  const isErasing = hasWrite && t.writeSymbols.some((s) => s === 'B');
 
   // Detect copying (reading from one tape, writing same to another)
   const isCopying = t.readSymbols.some((rsym, i) =>
-    t.writeSymbols.some((wsym, j) => j !== i && wsym === rsym && wsym !== '*' && wsym !== '_')
+    t.writeSymbols.some((wsym, j) => j !== i && wsym === rsym && wsym !== '*' && wsym !== 'B')
   );
 
   if (snapshot.status === 'accepted') {

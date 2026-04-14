@@ -72,7 +72,7 @@ export default function TestRunner({ config, onToast }: TestRunnerProps) {
         const machine = new TuringMachine(testConfig);
         const finalSnap = machine.run(5000);
 
-        let actual: TestResult['actual'] = finalSnap.status === 'running' ? 'timeout' : finalSnap.status;
+        const actual: TestResult['actual'] = finalSnap.status === 'running' ? 'timeout' : finalSnap.status;
         const passed =
           (tc.expected === 'accept' && actual === 'accepted') ||
           (tc.expected === 'reject' && (actual === 'rejected' || actual === 'halted' || actual === 'missing_transition'));

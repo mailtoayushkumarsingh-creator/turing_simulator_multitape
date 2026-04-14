@@ -1,7 +1,7 @@
 'use client';
 import Image from "next/image";
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { TuringMachine, MachineConfig, MachineSnapshot } from './lib/turingEngine';
+import { TuringMachine, MachineConfig, MachineSnapshot, SingleTapeTuringMachine } from './lib/turingEngine';
 import { EXAMPLES, getExampleByName } from './lib/examples';
 import TapeVisualization from './components/TapeVisualization';
 import PlaybackControls from './components/PlaybackControls';
@@ -20,7 +20,6 @@ import KeyboardShortcuts from './components/KeyboardShortcuts';
 import ShortcutsModal from './components/ShortcutsModal';
 import Toast, { ToastMessage } from './components/Toast';
 import InstructionPanel from './components/InstructionPanel';
-import SafeModeToggle from './components/SafeModeToggle';
 import TransitionValidation from './components/TransitionValidation';
 import TestRunner from './components/TestRunner';
 import dynamic from 'next/dynamic';
@@ -39,10 +38,10 @@ const StateDiagram = dynamic(() => import('./components/StateDiagram'), {
 const PROGRESS_MAX_STEPS = 120;
 
 export default function Home() {
-  const [config, setConfig] = useState<MachineConfig>(() => ({ ...EXAMPLES[0], safeMode: true }));
+  const [config, setConfig] = useState<MachineConfig>(() => ({ ...EXAMPLES[0] }));
   const [currentExample, setCurrentExample] = useState<string>(EXAMPLES[0].name);
-  const [machine, setMachine] = useState<TuringMachine>(() => new TuringMachine({ ...EXAMPLES[0], safeMode: true }));
-  const [snapshot, setSnapshot] = useState<MachineSnapshot>(() => new TuringMachine({ ...EXAMPLES[0], safeMode: true }).getSnapshot());
+  const [machine, setMachine] = useState<TuringMachine>(() => new TuringMachine({ ...EXAMPLES[0] }));
+  const [snapshot, setSnapshot] = useState<MachineSnapshot>(() => new TuringMachine({ ...EXAMPLES[0] }).getSnapshot());
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(400);
   const [writtenCells, setWrittenCells] = useState<Set<string>>(new Set());
@@ -51,9 +50,17 @@ export default function Home() {
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
   const [stateHistory, setStateHistory] = useState<string[]>([EXAMPLES[0].initialState]);
   const [learningMode, setLearningMode] = useState(false);
-  const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [safeMode, setSafeMode] = useState(true);
+  const [modeMessage, setModeMessage] = useState("");
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [efficiencyHistory, setEfficiencyHistory] = useState<Array<{ inputSize: number; multi: number; single: number }>>([]);
+  const [currentProblem, setCurrentProblem] = useState<string>(EXAMPLES[0].name);
   const toastIdRef = useRef(0);
+  const stepRef = useRef(snapshot.step);
+  const configRef = useRef(config);
+
+  useEffect(() => { stepRef.current = snapshot.step; }, [snapshot.step]);
+  useEffect(() => { configRef.current = config; }, [config]);
   const playIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const machineRef = useRef<TuringMachine>(machine);
 
@@ -61,6 +68,13 @@ export default function Home() {
     const timer = setTimeout(() => setIsLoaded(true), 400);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (modeMessage) {
+      const timer = setTimeout(() => setModeMessage(""), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [modeMessage]);
 
   useEffect(() => {
     machineRef.current = machine;
@@ -100,6 +114,31 @@ export default function Home() {
       else if (snapshot.status === 'missing_transition') {
         addToast('error', snapshot.missingTransitionInfo || 'Missing transition detected');
       }
+
+      if (snapshot.status !== 'running' && stepRef.current > 0) {
+        const currentConfig = configRef.current;
+        
+        // Ensure data only appends for same problem.
+        if (currentConfig.name !== currentProblem) {
+           setCurrentProblem(currentConfig.name);
+           setEfficiencyHistory([]);
+        }
+
+        const inputLen = currentConfig.initialTapes[0]?.filter(s => s !== currentConfig.blankSymbol).length || 1;
+        const singleTapeSim = new SingleTapeTuringMachine(currentConfig);
+        const stSteps = singleTapeSim.simulateComparison(stepRef.current);
+        
+        setEfficiencyHistory(prev => {
+          const basePrev = currentConfig.name !== currentProblem ? [] : prev;
+          // Avoid duplicate runs of the exact same size/steps if user just spams play
+          const isDuplicate = basePrev.some(p => p.inputSize === inputLen && p.multi === stepRef.current);
+          if (isDuplicate) return basePrev;
+
+          const newData = [...basePrev, { inputSize: inputLen, multi: stepRef.current, single: stSteps }];
+          return newData.sort((a, b) => a.inputSize - b.inputSize);
+        });
+      }
+
       prevStatusRef.current = snapshot.status;
     }
   }, [snapshot.status, isPlaying, addToast, snapshot.missingTransitionInfo]);
@@ -108,7 +147,7 @@ export default function Home() {
     if (isPlaying) {
       playIntervalRef.current = setInterval(() => {
         const m = machineRef.current;
-        const result = m.step();
+        const result = m.step(safeMode);
         if (result) {
           setSnapshot({ ...result });
           setStateHistory(prev => [...prev, result.state]);
@@ -147,10 +186,10 @@ export default function Home() {
         playIntervalRef.current = null;
       }
     };
-  }, [isPlaying, speed]);
+  }, [isPlaying, speed, safeMode]);
 
   const handleStep = useCallback(() => {
-    const result = machine.step();
+    const result = machine.step(safeMode);
     if (result) {
       setSnapshot({ ...result });
       setStateHistory(prev => [...prev, result.state]);
@@ -169,7 +208,7 @@ export default function Home() {
         setTimeout(() => setWrittenCells(new Set()), 400);
       }
     }
-  }, [machine]);
+  }, [machine, safeMode]);
 
   const handleStepBack = useCallback(() => {
     const result = machine.stepBack();
@@ -223,27 +262,13 @@ export default function Home() {
     else handlePlay();
   }, [isPlaying, handlePlay, handlePause]);
 
-  const handleSafeModeToggle = useCallback((value: boolean) => {
-    setSafeMode(value);
-    // Update the current config and re-create the machine
-    const newConfig = { ...config, safeMode: value };
-    setConfig(newConfig);
-    const newMachine = new TuringMachine(newConfig);
-    setMachine(newMachine);
-    machineRef.current = newMachine;
-    setSnapshot(newMachine.getSnapshot());
-    setWrittenCells(new Set());
-    setStateHistory([newConfig.initialState]);
-    addToast('info', value ? 'Safe Mode ON — missing transitions auto-reject' : 'Strict Mode — missing transitions halt');
-  }, [config, addToast]);
-
   const handleExampleSelect = useCallback((name: string) => {
     setIsPlaying(false);
     setCurrentExample(name);
     const example = getExampleByName(name);
     let newConfig: MachineConfig;
     if (example) {
-      newConfig = { ...example, safeMode };
+      newConfig = { ...example };
     } else {
       // Custom Machine Mode — empty config for building from scratch
       newConfig = {
@@ -251,14 +276,13 @@ export default function Home() {
         description: 'Build your own Turing Machine from scratch. Define states, alphabet, transitions, and input.',
         numTapes: 1,
         states: ['q0', 'q1', 'qAccept', 'qReject'],
-        alphabet: ['0', '1', '_'],
-        blankSymbol: '_',
+        alphabet: ['0', '1', 'B'],
+        blankSymbol: 'B',
         initialState: 'q0',
         acceptStates: ['qAccept'],
         rejectStates: ['qReject'],
         transitions: [],
         initialTapes: [[]],
-        safeMode,
       };
       addToast('info', 'Custom Machine mode — define your own transitions');
     }
@@ -269,21 +293,30 @@ export default function Home() {
     setSnapshot(newMachine.getSnapshot());
     setWrittenCells(new Set());
     setStateHistory([newConfig.initialState]);
-  }, [addToast, safeMode]);
+    
+    if (newConfig.name !== currentProblem) {
+      setEfficiencyHistory([]);
+      setCurrentProblem(newConfig.name);
+    }
+  }, [addToast, currentProblem]);
 
   // Feature 6: Auto-reset — handleConfigChange already resets the machine
   const handleConfigChange = useCallback((newConfig: MachineConfig) => {
     setIsPlaying(false);
-    const configWithSafeMode = { ...newConfig, safeMode };
-    setConfig(configWithSafeMode);
+    setConfig(newConfig);
     setCurrentExample('');
-    const newMachine = new TuringMachine(configWithSafeMode);
+    const newMachine = new TuringMachine(newConfig);
     setMachine(newMachine);
     machineRef.current = newMachine;
     setSnapshot(newMachine.getSnapshot());
     setWrittenCells(new Set());
-    setStateHistory([configWithSafeMode.initialState]);
-  }, [safeMode]);
+    setStateHistory([newConfig.initialState]);
+
+    if (newConfig.name !== currentProblem) {
+      setEfficiencyHistory([]);
+      setCurrentProblem(newConfig.name);
+    }
+  }, [currentProblem]);
 
   const toggleShortcutsModal = useCallback(() => {
     setShowShortcutsModal(prev => !prev);
@@ -390,13 +423,7 @@ export default function Home() {
 
               <div style={{ width: '1px', height: '24px', background: 'var(--border-glass)' }} />
 
-              {/* Safe Mode Toggle */}
-              <SafeModeToggle
-                safeMode={safeMode}
-                onToggle={handleSafeModeToggle}
-              />
 
-              <div style={{ width: '1px', height: '24px', background: 'var(--border-glass)' }} />
 
               {/* Learning Mode Toggle */}
               <Tooltip text="Toggle between simulation and learning mode">
@@ -412,6 +439,34 @@ export default function Home() {
                     onClick={() => setLearningMode(true)}
                   >
                     🎓 Learn
+                  </button>
+                </div>
+              </Tooltip>
+
+              <div style={{ width: '1px', height: '24px', background: 'var(--border-glass)' }} />
+
+              {/* Safe Mode Toggle */}
+              <Tooltip text="Toggle Safe Mode vs Strict Mode">
+                <div className="mode-toggle">
+                  <button
+                    className={`mode-toggle-btn${safeMode ? ' active' : ''}`}
+                    onClick={() => {
+                      setSafeMode(true);
+                      setModeMessage("Safe Mode Enabled: Missing transitions will automatically REJECT.");
+                    }}
+                    style={safeMode ? { color: '#0ea5e9' } : {}}
+                  >
+                    🛡️ Safe Mode ON
+                  </button>
+                  <button
+                    className={`mode-toggle-btn${!safeMode ? ' active' : ''}`}
+                    onClick={() => {
+                      setSafeMode(false);
+                      setModeMessage("Strict Mode Enabled: Missing transitions will HALT the machine.");
+                    }}
+                    style={!safeMode ? { color: '#ef4444' } : {}}
+                  >
+                    ⚠️ Strict Mode
                   </button>
                 </div>
               </Tooltip>
@@ -492,16 +547,6 @@ export default function Home() {
                     border: '1px solid rgba(5, 150, 105, 0.2)',
                   }}>EDITABLE</span>
                 )}
-                {/* Safe Mode badge */}
-                <span style={{
-                  fontSize: '10px',
-                  fontWeight: 600,
-                  padding: '2px 8px',
-                  background: safeMode ? 'rgba(5, 150, 105, 0.08)' : 'rgba(245, 158, 11, 0.08)',
-                  color: safeMode ? 'var(--accent-emerald)' : 'var(--accent-amber)',
-                  borderRadius: '6px',
-                  border: safeMode ? '1px solid rgba(5, 150, 105, 0.2)' : '1px solid rgba(245, 158, 11, 0.2)',
-                }}>{safeMode ? '🛡️ SAFE' : '⚡ STRICT'}</span>
               </div>
               <div style={{
                 fontSize: '12px',
@@ -542,13 +587,10 @@ export default function Home() {
                 }}>
                   {snapshot.missingTransitionInfo || (
                     <>
-                      The machine stopped because no transition rule matches state <strong style={{
+                      The machine rejected unexpectedly because no transition rule matches state <strong style={{
                         fontFamily: 'var(--font-mono)',
                         color: 'var(--text-primary)',
-                      }}>{snapshot.state}</strong> with the current tape symbols.
-                      {safeMode
-                        ? ' Enable Safe Mode auto-reject by defining a reject state (qReject).'
-                        : ' Add a matching transition rule, enable Safe Mode, or check your input.'}
+                      }}>{snapshot.state}</strong> with the current tape symbols. Add a matching transition rule or check your input.
                     </>
                   )}
                 </div>
@@ -609,6 +651,25 @@ export default function Home() {
               currentState={snapshot.state}
               status={snapshot.status}
             />
+            
+            {/* Current State Text Display */}
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'center' }}>
+              <div style={{
+                padding: '6px 16px',
+                borderRadius: '9999px',
+                fontSize: '14px',
+                fontWeight: 600,
+                color: '#fff',
+                backgroundColor: snapshot.status === 'running' ? '#3b82f6' :
+                                 snapshot.status === 'accepted' ? '#22c55e' :
+                                 (snapshot.status === 'rejected' || snapshot.status === 'missing_transition') ? '#ef4444' :
+                                 '#f59e0b',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+              }}>
+                Current State: {snapshot.state} ({snapshot.status})
+              </div>
+            </div>
+
           </div>
 
           {/* State Transition Diagram */}
@@ -661,6 +722,7 @@ export default function Home() {
               config={config}
               multiTapeSteps={snapshot.step}
               status={snapshot.status}
+              history={efficiencyHistory}
             />
           )}
 
@@ -709,6 +771,24 @@ export default function Home() {
 
       {/* Toast Notifications */}
       <Toast toasts={toasts} onDismiss={dismissToast} />
+
+      {modeMessage && (
+        <div className="mode-toast" style={{
+          position: 'fixed',
+          bottom: '100px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: safeMode ? '#10b981' : '#f59e0b',
+          color: '#ffffff',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)',
+          zIndex: 9999,
+          fontWeight: 500,
+        }}>
+          {modeMessage}
+        </div>
+      )}
     </>
   );
 }

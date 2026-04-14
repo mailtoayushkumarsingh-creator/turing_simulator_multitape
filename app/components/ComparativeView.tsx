@@ -3,17 +3,20 @@
 import React from 'react';
 import { SingleTapeTuringMachine } from '../lib/turingEngine';
 import type { MachineConfig } from '../lib/turingEngine';
+import EfficiencyGraphs from './EfficiencyGraphs';
 
 interface ComparativeViewProps {
   config: MachineConfig;
   multiTapeSteps: number;
   status: 'running' | 'accepted' | 'rejected' | 'halted' | 'missing_transition';
+  history?: Array<{ inputSize: number; multi: number; single: number }>;
 }
 
 export default function ComparativeView({
   config,
   multiTapeSteps,
   status,
+  history = [],
 }: ComparativeViewProps) {
   const singleTapeSim = new SingleTapeTuringMachine(config);
   const singleTapeSteps = singleTapeSim.simulateComparison(multiTapeSteps);
@@ -21,6 +24,12 @@ export default function ComparativeView({
   const maxSteps = Math.max(singleTapeSteps, multiTapeSteps, 1);
   const multiWidth = Math.max(5, (multiTapeSteps / maxSteps) * 100);
   const singleWidth = Math.max(5, (singleTapeSteps / maxSteps) * 100);
+  
+  const currentRun = {
+    inputSize: config.initialTapes[0]?.filter(s => s !== config.blankSymbol).length || 1,
+    multi: multiTapeSteps,
+    single: singleTapeSteps,
+  };
 
   const speedup = multiTapeSteps > 0
     ? (singleTapeSteps / multiTapeSteps).toFixed(1)
@@ -337,6 +346,10 @@ export default function ComparativeView({
               Both models recognize the same class of languages.
             </span>
           </div>
+        </div>
+
+        <div style={{ marginTop: '32px' }}>
+          <EfficiencyGraphs data={history} currentRun={currentRun} />
         </div>
       </div>
     </div>

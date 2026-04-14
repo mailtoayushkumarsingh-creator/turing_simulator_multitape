@@ -22,7 +22,6 @@ export interface MachineConfig {
   rejectStates: string[];
   transitions: TransitionRule[];
   initialTapes: string[][]; // initial content for each tape
-  safeMode?: boolean;       // when true, missing transition → auto-reject instead of halt
 }
 
 export interface MachineSnapshot {
@@ -140,7 +139,7 @@ export class TuringMachine {
     }
   }
 
-  step(): MachineSnapshot | null {
+  step(safeMode: boolean = true): MachineSnapshot | null {
     if (this.status !== 'running') return null;
 
     // Read symbols under each head — ensure ALL tape symbols are read
@@ -167,21 +166,18 @@ export class TuringMachine {
       } else if (this.config.rejectStates.includes(this.currentState)) {
         // Already in reject state — reject
         this.status = 'rejected';
-      } else if (this.config.safeMode !== false) {
-        // SAFE MODE ON (default): Auto-transition to reject state
-        const rejectState = this.config.rejectStates[0];
-        if (rejectState) {
-          this.currentState = rejectState;
-          this.status = 'rejected';
-          this.lastError = `Missing transition for (${this.currentState}, [${symbolsStr}]) → Auto-rejected (Safe Mode)`;
-        } else {
-          // No reject state defined — use missing_transition status
-          this.status = 'missing_transition';
-          this.lastError = `Missing transition for state "${this.currentState}" reading [${symbolsStr}]. No reject state defined — add qReject to your states.`;
-        }
       } else {
-        // SAFE MODE OFF: Strict TM behavior — halt
-        this.status = 'halted';
+        if (safeMode) {
+          const rejectState = this.config.rejectStates[0];
+          if (rejectState) {
+            this.currentState = rejectState;
+          }
+          this.status = 'rejected';
+          this.lastError = `Missing transition for state "${this.currentState}" reading [${symbolsStr}]. Machine Auto-Rejected.`;
+        } else {
+          this.status = 'halted';
+          this.lastError = `Missing transition for state "${this.currentState}" reading [${symbolsStr}]. Machine Halted.`;
+        }
       }
 
       const snap = this.getSnapshot();
@@ -231,10 +227,10 @@ export class TuringMachine {
   }
 
   // Run until halt or max steps
-  run(maxSteps: number = 1000): MachineSnapshot {
+  run(maxSteps: number = 1000, safeMode: boolean = true): MachineSnapshot {
     let lastSnap = this.getSnapshot();
     for (let i = 0; i < maxSteps && this.status === 'running'; i++) {
-      const snap = this.step();
+      const snap = this.step(safeMode);
       if (snap) lastSnap = snap;
     }
     return lastSnap;

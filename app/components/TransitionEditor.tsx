@@ -136,17 +136,18 @@ export default function TransitionEditor({
 
   const updateTapeInput = (tapeIdx: number, value: string) => {
     const newTapes = [...localConfig.initialTapes];
-    newTapes[tapeIdx] = value.split('').filter(c => c.trim() !== '');
+    newTapes[tapeIdx] = value.split('').map(c => c === '_' ? 'B' : c).filter(c => c.trim() !== '');
     updateConfig({ initialTapes: newTapes });
   };
 
   // Handle input string change with validation
   const handleInputStringChange = (value: string) => {
-    setInputString(value);
+    const safeValue = value.replace(/_/g, 'B');
+    setInputString(safeValue);
 
     // Validate against alphabet
     const validSymbols = localConfig.alphabet.filter(s => s !== localConfig.blankSymbol);
-    const invalidChars = value.split('').filter(c => c.trim() !== '' && !validSymbols.includes(c));
+    const invalidChars = safeValue.split('').filter(c => c.trim() !== '' && !validSymbols.includes(c));
 
     if (invalidChars.length > 0) {
       setInputError(`Invalid symbol(s): ${[...new Set(invalidChars)].map(c => `'${c}'`).join(', ')} — not in alphabet [${validSymbols.join(', ')}]`);
@@ -157,7 +158,7 @@ export default function TransitionEditor({
 
     // Update Tape 1 with the input
     const newTapes = [...localConfig.initialTapes];
-    newTapes[0] = value.split('').filter(c => c.trim() !== '');
+    newTapes[0] = safeValue.split('').filter(c => c.trim() !== '');
 
     // Fill other tapes with blank
     for (let i = 1; i < localConfig.numTapes; i++) {
@@ -392,7 +393,7 @@ export default function TransitionEditor({
               <input
                 className="input-field"
                 value={localConfig.blankSymbol}
-                onChange={(e) => updateConfig({ blankSymbol: e.target.value || '_' })}
+                onChange={(e) => updateConfig({ blankSymbol: e.target.value || 'B' })}
                 maxLength={1}
               />
             </div>

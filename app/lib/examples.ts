@@ -10,8 +10,8 @@ export const EXAMPLES: MachineConfig[] = [
       'Copies the input string from Tape 1 to Tape 2. Demonstrates the basic power of multi-tape machines: reading from one tape while writing to another simultaneously.',
     numTapes: 2,
     states: ['q0', 'q1', 'qAccept'],
-    alphabet: ['0', '1', '_'],
-    blankSymbol: '_',
+    alphabet: ['0', '1', 'B'],
+    blankSymbol: 'B',
     initialState: 'q0',
     acceptStates: ['qAccept'],
     rejectStates: [],
@@ -19,14 +19,14 @@ export const EXAMPLES: MachineConfig[] = [
       // q0: read from tape 1, write to tape 2
       {
         fromState: 'q0',
-        readSymbols: ['0', '_'],
+        readSymbols: ['0', 'B'],
         toState: 'q0',
         writeSymbols: ['0', '0'],
         directions: ['R', 'R'],
       },
       {
         fromState: 'q0',
-        readSymbols: ['1', '_'],
+        readSymbols: ['1', 'B'],
         toState: 'q0',
         writeSymbols: ['1', '1'],
         directions: ['R', 'R'],
@@ -34,9 +34,9 @@ export const EXAMPLES: MachineConfig[] = [
       // When tape 1 is blank, we're done — rewind
       {
         fromState: 'q0',
-        readSymbols: ['_', '_'],
+        readSymbols: ['B', 'B'],
         toState: 'q1',
-        writeSymbols: ['_', '_'],
+        writeSymbols: ['B', 'B'],
         directions: ['L', 'L'],
       },
       // q1: rewind both tapes
@@ -56,9 +56,9 @@ export const EXAMPLES: MachineConfig[] = [
       },
       {
         fromState: 'q1',
-        readSymbols: ['_', '_'],
+        readSymbols: ['B', 'B'],
         toState: 'qAccept',
-        writeSymbols: ['_', '_'],
+        writeSymbols: ['B', 'B'],
         directions: ['R', 'R'],
       },
     ],
@@ -75,8 +75,8 @@ export const EXAMPLES: MachineConfig[] = [
       'Adds two binary numbers from Tape 1 and Tape 2, writing the result to Tape 3. Shows how multiple tapes allow parallel data access without shuffling.',
     numTapes: 3,
     states: ['qStart', 'qAdd0', 'qAdd1', 'qCarry', 'qDone', 'qAccept'],
-    alphabet: ['0', '1', '_'],
-    blankSymbol: '_',
+    alphabet: ['0', '1', 'B'],
+    blankSymbol: 'B',
     initialState: 'qStart',
     acceptStates: ['qAccept'],
     rejectStates: [],
@@ -84,30 +84,30 @@ export const EXAMPLES: MachineConfig[] = [
       // qStart: move all heads to rightmost digit first
       {
         fromState: 'qStart',
-        readSymbols: ['0', '*', '_'],
+        readSymbols: ['0', '*', 'B'],
         toState: 'qStart',
-        writeSymbols: ['0', '*', '_'],
+        writeSymbols: ['0', '*', 'B'],
         directions: ['R', 'S', 'S'],
       },
       {
         fromState: 'qStart',
-        readSymbols: ['1', '*', '_'],
+        readSymbols: ['1', '*', 'B'],
         toState: 'qStart',
-        writeSymbols: ['1', '*', '_'],
+        writeSymbols: ['1', '*', 'B'],
         directions: ['R', 'S', 'S'],
       },
       {
         fromState: 'qStart',
-        readSymbols: ['_', '*', '_'],
+        readSymbols: ['B', '*', 'B'],
         toState: 'qAdd0',
-        writeSymbols: ['_', '*', '_'],
+        writeSymbols: ['B', '*', 'B'],
         directions: ['L', 'S', 'S'],
       },
       // qAdd0: no carry — add digits
       // 0+0=0
       {
         fromState: 'qAdd0',
-        readSymbols: ['0', '0', '_'],
+        readSymbols: ['0', '0', 'B'],
         toState: 'qAdd0',
         writeSymbols: ['0', '0', '0'],
         directions: ['L', 'L', 'L'],
@@ -115,7 +115,7 @@ export const EXAMPLES: MachineConfig[] = [
       // 0+1=1
       {
         fromState: 'qAdd0',
-        readSymbols: ['0', '1', '_'],
+        readSymbols: ['0', '1', 'B'],
         toState: 'qAdd0',
         writeSymbols: ['0', '1', '1'],
         directions: ['L', 'L', 'L'],
@@ -123,7 +123,7 @@ export const EXAMPLES: MachineConfig[] = [
       // 1+0=1
       {
         fromState: 'qAdd0',
-        readSymbols: ['1', '0', '_'],
+        readSymbols: ['1', '0', 'B'],
         toState: 'qAdd0',
         writeSymbols: ['1', '0', '1'],
         directions: ['L', 'L', 'L'],
@@ -131,7 +131,7 @@ export const EXAMPLES: MachineConfig[] = [
       // 1+1=0, carry
       {
         fromState: 'qAdd0',
-        readSymbols: ['1', '1', '_'],
+        readSymbols: ['1', '1', 'B'],
         toState: 'qAdd1',
         writeSymbols: ['1', '1', '0'],
         directions: ['L', 'L', 'L'],
@@ -139,38 +139,38 @@ export const EXAMPLES: MachineConfig[] = [
       // one operand exhausted
       {
         fromState: 'qAdd0',
-        readSymbols: ['_', '0', '_'],
+        readSymbols: ['B', '0', 'B'],
         toState: 'qAdd0',
-        writeSymbols: ['_', '0', '0'],
+        writeSymbols: ['B', '0', '0'],
         directions: ['S', 'L', 'L'],
       },
       {
         fromState: 'qAdd0',
-        readSymbols: ['_', '1', '_'],
+        readSymbols: ['B', '1', 'B'],
         toState: 'qAdd0',
-        writeSymbols: ['_', '1', '1'],
+        writeSymbols: ['B', '1', '1'],
         directions: ['S', 'L', 'L'],
       },
       {
         fromState: 'qAdd0',
-        readSymbols: ['0', '_', '_'],
+        readSymbols: ['0', 'B', 'B'],
         toState: 'qAdd0',
-        writeSymbols: ['0', '_', '0'],
+        writeSymbols: ['0', 'B', '0'],
         directions: ['L', 'S', 'L'],
       },
       {
         fromState: 'qAdd0',
-        readSymbols: ['1', '_', '_'],
+        readSymbols: ['1', 'B', 'B'],
         toState: 'qAdd0',
-        writeSymbols: ['1', '_', '1'],
+        writeSymbols: ['1', 'B', '1'],
         directions: ['L', 'S', 'L'],
       },
       // both done, no carry
       {
         fromState: 'qAdd0',
-        readSymbols: ['_', '_', '_'],
+        readSymbols: ['B', 'B', 'B'],
         toState: 'qDone',
-        writeSymbols: ['_', '_', '_'],
+        writeSymbols: ['B', 'B', 'B'],
         directions: ['S', 'S', 'R'],
       },
 
@@ -178,7 +178,7 @@ export const EXAMPLES: MachineConfig[] = [
       // 0+0+1=1
       {
         fromState: 'qAdd1',
-        readSymbols: ['0', '0', '_'],
+        readSymbols: ['0', '0', 'B'],
         toState: 'qAdd0',
         writeSymbols: ['0', '0', '1'],
         directions: ['L', 'L', 'L'],
@@ -186,7 +186,7 @@ export const EXAMPLES: MachineConfig[] = [
       // 0+1+1=0, carry
       {
         fromState: 'qAdd1',
-        readSymbols: ['0', '1', '_'],
+        readSymbols: ['0', '1', 'B'],
         toState: 'qAdd1',
         writeSymbols: ['0', '1', '0'],
         directions: ['L', 'L', 'L'],
@@ -194,7 +194,7 @@ export const EXAMPLES: MachineConfig[] = [
       // 1+0+1=0, carry
       {
         fromState: 'qAdd1',
-        readSymbols: ['1', '0', '_'],
+        readSymbols: ['1', '0', 'B'],
         toState: 'qAdd1',
         writeSymbols: ['1', '0', '0'],
         directions: ['L', 'L', 'L'],
@@ -202,7 +202,7 @@ export const EXAMPLES: MachineConfig[] = [
       // 1+1+1=1, carry
       {
         fromState: 'qAdd1',
-        readSymbols: ['1', '1', '_'],
+        readSymbols: ['1', '1', 'B'],
         toState: 'qAdd1',
         writeSymbols: ['1', '1', '1'],
         directions: ['L', 'L', 'L'],
@@ -210,38 +210,38 @@ export const EXAMPLES: MachineConfig[] = [
       // one operand exhausted with carry
       {
         fromState: 'qAdd1',
-        readSymbols: ['_', '0', '_'],
+        readSymbols: ['B', '0', 'B'],
         toState: 'qAdd0',
-        writeSymbols: ['_', '0', '1'],
+        writeSymbols: ['B', '0', '1'],
         directions: ['S', 'L', 'L'],
       },
       {
         fromState: 'qAdd1',
-        readSymbols: ['_', '1', '_'],
+        readSymbols: ['B', '1', 'B'],
         toState: 'qAdd1',
-        writeSymbols: ['_', '1', '0'],
+        writeSymbols: ['B', '1', '0'],
         directions: ['S', 'L', 'L'],
       },
       {
         fromState: 'qAdd1',
-        readSymbols: ['0', '_', '_'],
+        readSymbols: ['0', 'B', 'B'],
         toState: 'qAdd0',
-        writeSymbols: ['0', '_', '1'],
+        writeSymbols: ['0', 'B', '1'],
         directions: ['L', 'S', 'L'],
       },
       {
         fromState: 'qAdd1',
-        readSymbols: ['1', '_', '_'],
+        readSymbols: ['1', 'B', 'B'],
         toState: 'qAdd1',
-        writeSymbols: ['1', '_', '0'],
+        writeSymbols: ['1', 'B', '0'],
         directions: ['L', 'S', 'L'],
       },
       // both done, carry remains
       {
         fromState: 'qAdd1',
-        readSymbols: ['_', '_', '_'],
+        readSymbols: ['B', 'B', 'B'],
         toState: 'qDone',
-        writeSymbols: ['_', '_', '1'],
+        writeSymbols: ['B', 'B', '1'],
         directions: ['S', 'S', 'R'],
       },
 
@@ -268,8 +268,8 @@ export const EXAMPLES: MachineConfig[] = [
       'Checks if the input string on Tape 1 is a palindrome by copying it in reverse to Tape 2, then comparing. A single-tape machine would need many back-and-forth sweeps.',
     numTapes: 2,
     states: ['qCopy', 'qRewind1', 'qRewind2', 'qCompare', 'qAccept', 'qReject'],
-    alphabet: ['a', 'b', '_'],
-    blankSymbol: '_',
+    alphabet: ['a', 'b', 'B'],
+    blankSymbol: 'B',
     initialState: 'qCopy',
     acceptStates: ['qAccept'],
     rejectStates: ['qReject'],
@@ -277,37 +277,37 @@ export const EXAMPLES: MachineConfig[] = [
       // qCopy: move tape 1 head to end while counting
       {
         fromState: 'qCopy',
-        readSymbols: ['a', '_'],
+        readSymbols: ['a', 'B'],
         toState: 'qCopy',
-        writeSymbols: ['a', '_'],
+        writeSymbols: ['a', 'B'],
         directions: ['R', 'S'],
       },
       {
         fromState: 'qCopy',
-        readSymbols: ['b', '_'],
+        readSymbols: ['b', 'B'],
         toState: 'qCopy',
-        writeSymbols: ['b', '_'],
+        writeSymbols: ['b', 'B'],
         directions: ['R', 'S'],
       },
       // end of input: start reverse copy
       {
         fromState: 'qCopy',
-        readSymbols: ['_', '_'],
+        readSymbols: ['B', 'B'],
         toState: 'qRewind1',
-        writeSymbols: ['_', '_'],
+        writeSymbols: ['B', 'B'],
         directions: ['L', 'S'],
       },
       // qRewind1: copy tape 1 in reverse to tape 2
       {
         fromState: 'qRewind1',
-        readSymbols: ['a', '_'],
+        readSymbols: ['a', 'B'],
         toState: 'qRewind1',
         writeSymbols: ['a', 'a'],
         directions: ['L', 'R'],
       },
       {
         fromState: 'qRewind1',
-        readSymbols: ['b', '_'],
+        readSymbols: ['b', 'B'],
         toState: 'qRewind1',
         writeSymbols: ['b', 'b'],
         directions: ['L', 'R'],
@@ -315,9 +315,9 @@ export const EXAMPLES: MachineConfig[] = [
       // reached beginning of tape 1
       {
         fromState: 'qRewind1',
-        readSymbols: ['_', '_'],
+        readSymbols: ['B', 'B'],
         toState: 'qRewind2',
-        writeSymbols: ['_', '_'],
+        writeSymbols: ['B', 'B'],
         directions: ['R', 'L'],
       },
       // qRewind2: rewind tape 2 head to start
@@ -337,9 +337,9 @@ export const EXAMPLES: MachineConfig[] = [
       },
       {
         fromState: 'qRewind2',
-        readSymbols: ['*', '_'],
+        readSymbols: ['*', 'B'],
         toState: 'qCompare',
-        writeSymbols: ['*', '_'],
+        writeSymbols: ['*', 'B'],
         directions: ['S', 'R'],
       },
       // qCompare: compare tape 1 (forward) with tape 2 (forward = reverse of original)
@@ -375,9 +375,9 @@ export const EXAMPLES: MachineConfig[] = [
       // both done — palindrome!
       {
         fromState: 'qCompare',
-        readSymbols: ['_', '_'],
+        readSymbols: ['B', 'B'],
         toState: 'qAccept',
-        writeSymbols: ['_', '_'],
+        writeSymbols: ['B', 'B'],
         directions: ['S', 'S'],
       },
     ],
@@ -394,8 +394,8 @@ export const EXAMPLES: MachineConfig[] = [
       'Reverses the input string from Tape 1 onto Tape 2. First moves to the end of Tape 1, then copies characters backwards to Tape 2, demonstrating efficient data rearrangement with two tapes.',
     numTapes: 2,
     states: ['qRight', 'qCopyRev', 'qAccept'],
-    alphabet: ['a', 'b', 'c', '_'],
-    blankSymbol: '_',
+    alphabet: ['a', 'b', 'c', 'B'],
+    blankSymbol: 'B',
     initialState: 'qRight',
     acceptStates: ['qAccept'],
     rejectStates: [],
@@ -403,51 +403,51 @@ export const EXAMPLES: MachineConfig[] = [
       // qRight: move tape 1 head to end of input
       {
         fromState: 'qRight',
-        readSymbols: ['a', '_'],
+        readSymbols: ['a', 'B'],
         toState: 'qRight',
-        writeSymbols: ['a', '_'],
+        writeSymbols: ['a', 'B'],
         directions: ['R', 'S'],
       },
       {
         fromState: 'qRight',
-        readSymbols: ['b', '_'],
+        readSymbols: ['b', 'B'],
         toState: 'qRight',
-        writeSymbols: ['b', '_'],
+        writeSymbols: ['b', 'B'],
         directions: ['R', 'S'],
       },
       {
         fromState: 'qRight',
-        readSymbols: ['c', '_'],
+        readSymbols: ['c', 'B'],
         toState: 'qRight',
-        writeSymbols: ['c', '_'],
+        writeSymbols: ['c', 'B'],
         directions: ['R', 'S'],
       },
       // reached blank — start copying in reverse
       {
         fromState: 'qRight',
-        readSymbols: ['_', '_'],
+        readSymbols: ['B', 'B'],
         toState: 'qCopyRev',
-        writeSymbols: ['_', '_'],
+        writeSymbols: ['B', 'B'],
         directions: ['L', 'S'],
       },
       // qCopyRev: read from tape 1 going left, write to tape 2 going right
       {
         fromState: 'qCopyRev',
-        readSymbols: ['a', '_'],
+        readSymbols: ['a', 'B'],
         toState: 'qCopyRev',
         writeSymbols: ['a', 'a'],
         directions: ['L', 'R'],
       },
       {
         fromState: 'qCopyRev',
-        readSymbols: ['b', '_'],
+        readSymbols: ['b', 'B'],
         toState: 'qCopyRev',
         writeSymbols: ['b', 'b'],
         directions: ['L', 'R'],
       },
       {
         fromState: 'qCopyRev',
-        readSymbols: ['c', '_'],
+        readSymbols: ['c', 'B'],
         toState: 'qCopyRev',
         writeSymbols: ['c', 'c'],
         directions: ['L', 'R'],
@@ -455,9 +455,9 @@ export const EXAMPLES: MachineConfig[] = [
       // done reversing
       {
         fromState: 'qCopyRev',
-        readSymbols: ['_', '_'],
+        readSymbols: ['B', 'B'],
         toState: 'qAccept',
-        writeSymbols: ['_', '_'],
+        writeSymbols: ['B', 'B'],
         directions: ['S', 'S'],
       },
     ],
@@ -474,8 +474,8 @@ export const EXAMPLES: MachineConfig[] = [
       'Multiplies two unary numbers (Tape 1 × Tape 2) and writes the result on Tape 3. For each "1" on Tape 1, copies all of Tape 2 onto Tape 3. Shows how multiple tapes simplify nested loops.',
     numTapes: 3,
     states: ['qRead1', 'qCopy2', 'qRewind2', 'qNext1', 'qAccept'],
-    alphabet: ['1', '_'],
-    blankSymbol: '_',
+    alphabet: ['1', 'B'],
+    blankSymbol: 'B',
     initialState: 'qRead1',
     acceptStates: ['qAccept'],
     rejectStates: [],
@@ -483,23 +483,23 @@ export const EXAMPLES: MachineConfig[] = [
       // qRead1: read a 1 from tape 1, start copying tape 2
       {
         fromState: 'qRead1',
-        readSymbols: ['1', '*', '_'],
+        readSymbols: ['1', '*', 'B'],
         toState: 'qCopy2',
-        writeSymbols: ['1', '*', '_'],
+        writeSymbols: ['1', '*', 'B'],
         directions: ['S', 'S', 'S'],
       },
       // tape 1 exhausted — done
       {
         fromState: 'qRead1',
-        readSymbols: ['_', '*', '_'],
+        readSymbols: ['B', '*', 'B'],
         toState: 'qAccept',
-        writeSymbols: ['_', '*', '_'],
+        writeSymbols: ['B', '*', 'B'],
         directions: ['S', 'S', 'S'],
       },
       // qCopy2: copy each 1 from tape 2 to tape 3
       {
         fromState: 'qCopy2',
-        readSymbols: ['*', '1', '_'],
+        readSymbols: ['*', '1', 'B'],
         toState: 'qCopy2',
         writeSymbols: ['*', '1', '1'],
         directions: ['S', 'R', 'R'],
@@ -507,9 +507,9 @@ export const EXAMPLES: MachineConfig[] = [
       // tape 2 exhausted — rewind tape 2
       {
         fromState: 'qCopy2',
-        readSymbols: ['*', '_', '_'],
+        readSymbols: ['*', 'B', 'B'],
         toState: 'qRewind2',
-        writeSymbols: ['*', '_', '_'],
+        writeSymbols: ['*', 'B', 'B'],
         directions: ['S', 'L', 'S'],
       },
       // qRewind2: rewind tape 2 head back to start
@@ -522,9 +522,9 @@ export const EXAMPLES: MachineConfig[] = [
       },
       {
         fromState: 'qRewind2',
-        readSymbols: ['*', '_', '*'],
+        readSymbols: ['*', 'B', '*'],
         toState: 'qNext1',
-        writeSymbols: ['*', '_', '*'],
+        writeSymbols: ['*', 'B', '*'],
         directions: ['S', 'R', 'S'],
       },
       // qNext1: move to next symbol on tape 1
@@ -537,9 +537,9 @@ export const EXAMPLES: MachineConfig[] = [
       },
       {
         fromState: 'qNext1',
-        readSymbols: ['_', '*', '*'],
+        readSymbols: ['B', '*', '*'],
         toState: 'qAccept',
-        writeSymbols: ['_', '*', '*'],
+        writeSymbols: ['B', '*', '*'],
         directions: ['S', 'S', 'S'],
       },
     ],
@@ -557,8 +557,8 @@ export const EXAMPLES: MachineConfig[] = [
       'Classic single-tape algorithm for { aⁿbⁿ | n ≥ 1 }. Marks each \'a\' as \'X\', scans right to find matching \'b\' and marks it as \'Y\', then rewinds. Requires O(n²) steps due to repeated back-and-forth scanning on one tape.',
     numTapes: 1,
     states: ['q0', 'q1', 'q2', 'q3', 'qAccept', 'qReject'],
-    alphabet: ['a', 'b', 'X', 'Y', '_'],
-    blankSymbol: '_',
+    alphabet: ['a', 'b', 'X', 'Y', 'B'],
+    blankSymbol: 'B',
     initialState: 'q0',
     acceptStates: ['qAccept'],
     rejectStates: ['qReject'],
@@ -582,9 +582,9 @@ export const EXAMPLES: MachineConfig[] = [
       // q0: If we see blank or 'b' first, input is invalid
       {
         fromState: 'q0',
-        readSymbols: ['_'],
+        readSymbols: ['B'],
         toState: 'qReject',
-        writeSymbols: ['_'],
+        writeSymbols: ['B'],
         directions: ['S'],
       },
       {
@@ -621,9 +621,9 @@ export const EXAMPLES: MachineConfig[] = [
       // q1: Reached blank without finding 'b' — more a's than b's
       {
         fromState: 'q1',
-        readSymbols: ['_'],
+        readSymbols: ['B'],
         toState: 'qReject',
-        writeSymbols: ['_'],
+        writeSymbols: ['B'],
         directions: ['S'],
       },
 
@@ -662,9 +662,9 @@ export const EXAMPLES: MachineConfig[] = [
       // q3: All Y's consumed, blank reached — accept!
       {
         fromState: 'q3',
-        readSymbols: ['_'],
+        readSymbols: ['B'],
         toState: 'qAccept',
-        writeSymbols: ['_'],
+        writeSymbols: ['B'],
         directions: ['S'],
       },
       // q3: Found unmarked 'b' — more b's than a's
@@ -688,8 +688,8 @@ export const EXAMPLES: MachineConfig[] = [
       'Optimized 2-tape version of { aⁿbⁿ | n ≥ 1 }. This version demonstrates efficiency improvement using multiple tapes: Tape 1 holds input, Tape 2 acts as a counter. Copies all \'a\'s to Tape 2, then matches each \'b\' by erasing one \'a\' from Tape 2. Runs in O(n) time — a significant improvement over the O(n²) single-tape approach.',
     numTapes: 2,
     states: ['qCopyA', 'qMatchB', 'qVerify', 'qAccept', 'qReject'],
-    alphabet: ['a', 'b', '_'],
-    blankSymbol: '_',
+    alphabet: ['a', 'b', 'B'],
+    blankSymbol: 'B',
     initialState: 'qCopyA',
     acceptStates: ['qAccept'],
     rejectStates: ['qReject'],
@@ -697,7 +697,7 @@ export const EXAMPLES: MachineConfig[] = [
       // qCopyA: Copy each 'a' from Tape 1 to Tape 2 (as a counter)
       {
         fromState: 'qCopyA',
-        readSymbols: ['a', '_'],
+        readSymbols: ['a', 'B'],
         toState: 'qCopyA',
         writeSymbols: ['a', 'a'],
         directions: ['R', 'R'],
@@ -705,17 +705,17 @@ export const EXAMPLES: MachineConfig[] = [
       // qCopyA: Done with a's, start matching b's — move Tape 2 head left first
       {
         fromState: 'qCopyA',
-        readSymbols: ['b', '_'],
+        readSymbols: ['b', 'B'],
         toState: 'qMatchB',
-        writeSymbols: ['b', '_'],
+        writeSymbols: ['b', 'B'],
         directions: ['S', 'L'],
       },
       // qCopyA: Empty input (blank) — reject (need at least 1 a and 1 b)
       {
         fromState: 'qCopyA',
-        readSymbols: ['_', '_'],
+        readSymbols: ['B', 'B'],
         toState: 'qReject',
-        writeSymbols: ['_', '_'],
+        writeSymbols: ['B', 'B'],
         directions: ['S', 'S'],
       },
 
@@ -724,30 +724,30 @@ export const EXAMPLES: MachineConfig[] = [
         fromState: 'qMatchB',
         readSymbols: ['b', 'a'],
         toState: 'qMatchB',
-        writeSymbols: ['b', '_'],
+        writeSymbols: ['b', 'B'],
         directions: ['R', 'L'],
       },
       // qMatchB: Tape 1 hit blank — check if Tape 2 is also exhausted
       {
         fromState: 'qMatchB',
-        readSymbols: ['_', 'a'],
+        readSymbols: ['B', 'a'],
         toState: 'qReject',
-        writeSymbols: ['_', 'a'],
+        writeSymbols: ['B', 'a'],
         directions: ['S', 'S'],
       },
       {
         fromState: 'qMatchB',
-        readSymbols: ['_', '_'],
+        readSymbols: ['B', 'B'],
         toState: 'qAccept',
-        writeSymbols: ['_', '_'],
+        writeSymbols: ['B', 'B'],
         directions: ['S', 'S'],
       },
       // qMatchB: More b's than a's — Tape 2 exhausted but Tape 1 still has b's
       {
         fromState: 'qMatchB',
-        readSymbols: ['b', '_'],
+        readSymbols: ['b', 'B'],
         toState: 'qReject',
-        writeSymbols: ['b', '_'],
+        writeSymbols: ['b', 'B'],
         directions: ['S', 'S'],
       },
     ],
@@ -764,8 +764,8 @@ export const EXAMPLES: MachineConfig[] = [
       'Checks if the input string has even length. Alternates between two states for each character: q0 (even count so far) and q1 (odd count). Accepts if input length is even, rejects if odd. A simple, beginner-friendly example with complete transition coverage.',
     numTapes: 1,
     states: ['q0', 'q1', 'qAccept', 'qReject'],
-    alphabet: ['a', 'b', '0', '1', '_'],
-    blankSymbol: '_',
+    alphabet: ['a', 'b', '0', '1', 'B'],
+    blankSymbol: 'B',
     initialState: 'q0',
     acceptStates: ['qAccept'],
     rejectStates: ['qReject'],
@@ -776,7 +776,7 @@ export const EXAMPLES: MachineConfig[] = [
       { fromState: 'q0', readSymbols: ['0'], toState: 'q1', writeSymbols: ['0'], directions: ['R'] },
       { fromState: 'q0', readSymbols: ['1'], toState: 'q1', writeSymbols: ['1'], directions: ['R'] },
       // q0: blank → even length, accept!
-      { fromState: 'q0', readSymbols: ['_'], toState: 'qAccept', writeSymbols: ['_'], directions: ['S'] },
+      { fromState: 'q0', readSymbols: ['B'], toState: 'qAccept', writeSymbols: ['B'], directions: ['S'] },
 
       // q1: odd count — reading any symbol moves to q0 (even)
       { fromState: 'q1', readSymbols: ['a'], toState: 'q0', writeSymbols: ['a'], directions: ['R'] },
@@ -784,7 +784,7 @@ export const EXAMPLES: MachineConfig[] = [
       { fromState: 'q1', readSymbols: ['0'], toState: 'q0', writeSymbols: ['0'], directions: ['R'] },
       { fromState: 'q1', readSymbols: ['1'], toState: 'q0', writeSymbols: ['1'], directions: ['R'] },
       // q1: blank → odd length, reject!
-      { fromState: 'q1', readSymbols: ['_'], toState: 'qReject', writeSymbols: ['_'], directions: ['S'] },
+      { fromState: 'q1', readSymbols: ['B'], toState: 'qReject', writeSymbols: ['B'], directions: ['S'] },
     ],
     initialTapes: [
       ['a', 'b', 'a', 'b'],
@@ -798,8 +798,8 @@ export const EXAMPLES: MachineConfig[] = [
       'Replaces every occurrence of "a" in the input with "b". Scans left to right, writing "b" wherever it reads "a", leaving all other characters unchanged. Always accepts. Simple and beginner-friendly.',
     numTapes: 1,
     states: ['qScan', 'qAccept'],
-    alphabet: ['a', 'b', '_'],
-    blankSymbol: '_',
+    alphabet: ['a', 'b', 'B'],
+    blankSymbol: 'B',
     initialState: 'qScan',
     acceptStates: ['qAccept'],
     rejectStates: [],
@@ -809,7 +809,7 @@ export const EXAMPLES: MachineConfig[] = [
       // qScan: 'b' stays as 'b'
       { fromState: 'qScan', readSymbols: ['b'], toState: 'qScan', writeSymbols: ['b'], directions: ['R'] },
       // qScan: blank → done, accept
-      { fromState: 'qScan', readSymbols: ['_'], toState: 'qAccept', writeSymbols: ['_'], directions: ['S'] },
+      { fromState: 'qScan', readSymbols: ['B'], toState: 'qAccept', writeSymbols: ['B'], directions: ['S'] },
     ],
     initialTapes: [
       ['a', 'b', 'a', 'a', 'b'],
@@ -823,25 +823,25 @@ export const EXAMPLES: MachineConfig[] = [
       'Copies the input from Tape 1 to Tape 2, then accepts. This robust version handles all tape symbol combinations and includes a reject state. Designed for multi-tape beginners.',
     numTapes: 2,
     states: ['qCopy', 'qDone', 'qAccept', 'qReject'],
-    alphabet: ['a', 'b', '_'],
-    blankSymbol: '_',
+    alphabet: ['a', 'b', 'B'],
+    blankSymbol: 'B',
     initialState: 'qCopy',
     acceptStates: ['qAccept'],
     rejectStates: ['qReject'],
     transitions: [
       // qCopy: copy 'a' from tape1 to tape2
-      { fromState: 'qCopy', readSymbols: ['a', '_'], toState: 'qCopy', writeSymbols: ['a', 'a'], directions: ['R', 'R'] },
+      { fromState: 'qCopy', readSymbols: ['a', 'B'], toState: 'qCopy', writeSymbols: ['a', 'a'], directions: ['R', 'R'] },
       // qCopy: copy 'b' from tape1 to tape2
-      { fromState: 'qCopy', readSymbols: ['b', '_'], toState: 'qCopy', writeSymbols: ['b', 'b'], directions: ['R', 'R'] },
+      { fromState: 'qCopy', readSymbols: ['b', 'B'], toState: 'qCopy', writeSymbols: ['b', 'b'], directions: ['R', 'R'] },
       // qCopy: blank on tape1 → done
-      { fromState: 'qCopy', readSymbols: ['_', '_'], toState: 'qAccept', writeSymbols: ['_', '_'], directions: ['S', 'S'] },
+      { fromState: 'qCopy', readSymbols: ['B', 'B'], toState: 'qAccept', writeSymbols: ['B', 'B'], directions: ['S', 'S'] },
       // qCopy: unexpected symbol on tape2 → reject (tape2 should be blank)
       { fromState: 'qCopy', readSymbols: ['a', 'a'], toState: 'qReject', writeSymbols: ['a', 'a'], directions: ['S', 'S'] },
       { fromState: 'qCopy', readSymbols: ['a', 'b'], toState: 'qReject', writeSymbols: ['a', 'b'], directions: ['S', 'S'] },
       { fromState: 'qCopy', readSymbols: ['b', 'a'], toState: 'qReject', writeSymbols: ['b', 'a'], directions: ['S', 'S'] },
       { fromState: 'qCopy', readSymbols: ['b', 'b'], toState: 'qReject', writeSymbols: ['b', 'b'], directions: ['S', 'S'] },
-      { fromState: 'qCopy', readSymbols: ['_', 'a'], toState: 'qReject', writeSymbols: ['_', 'a'], directions: ['S', 'S'] },
-      { fromState: 'qCopy', readSymbols: ['_', 'b'], toState: 'qReject', writeSymbols: ['_', 'b'], directions: ['S', 'S'] },
+      { fromState: 'qCopy', readSymbols: ['B', 'a'], toState: 'qReject', writeSymbols: ['B', 'a'], directions: ['S', 'S'] },
+      { fromState: 'qCopy', readSymbols: ['B', 'b'], toState: 'qReject', writeSymbols: ['B', 'b'], directions: ['S', 'S'] },
     ],
     initialTapes: [
       ['a', 'b', 'a'],
@@ -856,37 +856,37 @@ export const EXAMPLES: MachineConfig[] = [
       'Reverses the input from Tape 1 onto Tape 2. First moves to the end of Tape 1, then copies characters backwards to Tape 2. This robust version covers all symbol combinations and always terminates cleanly.',
     numTapes: 2,
     states: ['qRight', 'qCopyRev', 'qAccept', 'qReject'],
-    alphabet: ['a', 'b', '_'],
-    blankSymbol: '_',
+    alphabet: ['a', 'b', 'B'],
+    blankSymbol: 'B',
     initialState: 'qRight',
     acceptStates: ['qAccept'],
     rejectStates: ['qReject'],
     transitions: [
       // qRight: scan to end of tape 1
-      { fromState: 'qRight', readSymbols: ['a', '_'], toState: 'qRight', writeSymbols: ['a', '_'], directions: ['R', 'S'] },
-      { fromState: 'qRight', readSymbols: ['b', '_'], toState: 'qRight', writeSymbols: ['b', '_'], directions: ['R', 'S'] },
+      { fromState: 'qRight', readSymbols: ['a', 'B'], toState: 'qRight', writeSymbols: ['a', 'B'], directions: ['R', 'S'] },
+      { fromState: 'qRight', readSymbols: ['b', 'B'], toState: 'qRight', writeSymbols: ['b', 'B'], directions: ['R', 'S'] },
       // qRight: reached blank → start reverse copy
-      { fromState: 'qRight', readSymbols: ['_', '_'], toState: 'qCopyRev', writeSymbols: ['_', '_'], directions: ['L', 'S'] },
+      { fromState: 'qRight', readSymbols: ['B', 'B'], toState: 'qCopyRev', writeSymbols: ['B', 'B'], directions: ['L', 'S'] },
       // qRight: unexpected tape2 content → reject
       { fromState: 'qRight', readSymbols: ['a', 'a'], toState: 'qReject', writeSymbols: ['a', 'a'], directions: ['S', 'S'] },
       { fromState: 'qRight', readSymbols: ['a', 'b'], toState: 'qReject', writeSymbols: ['a', 'b'], directions: ['S', 'S'] },
       { fromState: 'qRight', readSymbols: ['b', 'a'], toState: 'qReject', writeSymbols: ['b', 'a'], directions: ['S', 'S'] },
       { fromState: 'qRight', readSymbols: ['b', 'b'], toState: 'qReject', writeSymbols: ['b', 'b'], directions: ['S', 'S'] },
-      { fromState: 'qRight', readSymbols: ['_', 'a'], toState: 'qReject', writeSymbols: ['_', 'a'], directions: ['S', 'S'] },
-      { fromState: 'qRight', readSymbols: ['_', 'b'], toState: 'qReject', writeSymbols: ['_', 'b'], directions: ['S', 'S'] },
+      { fromState: 'qRight', readSymbols: ['B', 'a'], toState: 'qReject', writeSymbols: ['B', 'a'], directions: ['S', 'S'] },
+      { fromState: 'qRight', readSymbols: ['B', 'b'], toState: 'qReject', writeSymbols: ['B', 'b'], directions: ['S', 'S'] },
 
       // qCopyRev: copy in reverse
-      { fromState: 'qCopyRev', readSymbols: ['a', '_'], toState: 'qCopyRev', writeSymbols: ['a', 'a'], directions: ['L', 'R'] },
-      { fromState: 'qCopyRev', readSymbols: ['b', '_'], toState: 'qCopyRev', writeSymbols: ['b', 'b'], directions: ['L', 'R'] },
+      { fromState: 'qCopyRev', readSymbols: ['a', 'B'], toState: 'qCopyRev', writeSymbols: ['a', 'a'], directions: ['L', 'R'] },
+      { fromState: 'qCopyRev', readSymbols: ['b', 'B'], toState: 'qCopyRev', writeSymbols: ['b', 'b'], directions: ['L', 'R'] },
       // qCopyRev: reached beginning → done
-      { fromState: 'qCopyRev', readSymbols: ['_', '_'], toState: 'qAccept', writeSymbols: ['_', '_'], directions: ['S', 'S'] },
+      { fromState: 'qCopyRev', readSymbols: ['B', 'B'], toState: 'qAccept', writeSymbols: ['B', 'B'], directions: ['S', 'S'] },
       // qCopyRev: unexpected tape2 content → reject
       { fromState: 'qCopyRev', readSymbols: ['a', 'a'], toState: 'qReject', writeSymbols: ['a', 'a'], directions: ['S', 'S'] },
       { fromState: 'qCopyRev', readSymbols: ['a', 'b'], toState: 'qReject', writeSymbols: ['a', 'b'], directions: ['S', 'S'] },
       { fromState: 'qCopyRev', readSymbols: ['b', 'a'], toState: 'qReject', writeSymbols: ['b', 'a'], directions: ['S', 'S'] },
       { fromState: 'qCopyRev', readSymbols: ['b', 'b'], toState: 'qReject', writeSymbols: ['b', 'b'], directions: ['S', 'S'] },
-      { fromState: 'qCopyRev', readSymbols: ['_', 'a'], toState: 'qReject', writeSymbols: ['_', 'a'], directions: ['S', 'S'] },
-      { fromState: 'qCopyRev', readSymbols: ['_', 'b'], toState: 'qReject', writeSymbols: ['_', 'b'], directions: ['S', 'S'] },
+      { fromState: 'qCopyRev', readSymbols: ['B', 'a'], toState: 'qReject', writeSymbols: ['B', 'a'], directions: ['S', 'S'] },
+      { fromState: 'qCopyRev', readSymbols: ['B', 'b'], toState: 'qReject', writeSymbols: ['B', 'b'], directions: ['S', 'S'] },
     ],
     initialTapes: [
       ['a', 'b', 'b', 'a'],
